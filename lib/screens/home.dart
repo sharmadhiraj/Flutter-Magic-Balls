@@ -19,6 +19,7 @@ class _HomeScreenState extends State<HomeScreen> {
   late Timer _timer;
   bool _movingRight = true;
   double _slope = 0;
+  Color _borderColor = Config.containerBorderColor;
 
   @override
   void initState() {
@@ -28,40 +29,55 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: _buildBody());
+    return Scaffold(
+      body: _buildBody(),
+      backgroundColor: Colors.black,
+    );
   }
 
   Widget _buildBody() {
-    return Container(
+    return Stack(
+      children: [
+        _buildContainerBorder(),
+        Positioned(
+          left: _circlePosition.dx,
+          top: _circlePosition.dy,
+          child: Container(
+            decoration: const BoxDecoration(
+              color: Colors.pink,
+              shape: BoxShape.circle,
+            ),
+            height: Config.ballSize,
+            width: Config.ballSize,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContainerBorder() {
+    return AnimatedContainer(
       margin: EdgeInsets.only(
         top: _statusBarHeight,
         bottom: _bottomBarHeight,
       ),
-      child: Stack(
-        children: [
-          Positioned(
-            left: _circlePosition.dx,
-            top: _circlePosition.dy,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.pink,
-                shape: BoxShape.circle,
-              ),
-              height: Config.ballSize,
-              width: Config.ballSize,
-            ),
-          ),
-        ],
+      decoration: BoxDecoration(
+        color: Colors.black,
+        border: Border.all(
+          color: _borderColor,
+          style: BorderStyle.solid,
+          width: Config.containerBorderWidth,
+        ),
       ),
+      duration: Config.containerGlowDuration,
+      curve: Curves.easeInOut,
     );
   }
 
   void _init() {
     _statusBarHeight = MediaQuery.of(context).viewPadding.top;
     _bottomBarHeight = MediaQuery.of(context).viewPadding.bottom;
-    _height = MediaQuery.of(context).size.height -
-        _statusBarHeight -
-        _bottomBarHeight;
+    _height = MediaQuery.of(context).size.height;
     _width = MediaQuery.of(context).size.width;
     _circlePosition = Offset(
       (_width - Config.ballSize) / 2,
@@ -85,19 +101,42 @@ class _HomeScreenState extends State<HomeScreen> {
             _circlePosition.dy + (_movingRight ? -1 : 1) * _slope * xDistance,
           ),
         );
-
-        if (_circlePosition.dy < 0 ||
-            _circlePosition.dy > _height - Config.ballSize) {
+        if (_hitTopOrBottomBoundary()) {
+          _glow();
           setState(() => _slope = _slope * -1);
         }
-        if (_circlePosition.dx > _width - Config.ballSize ||
-            _circlePosition.dx < 0) {
+        if (_hitLeftOrRightBoundary()) {
+          _glow();
           setState(() {
             _slope = _slope * -1;
             _movingRight = !_movingRight;
           });
         }
       },
+    );
+  }
+
+  bool _hitTopOrBottomBoundary() {
+    return _circlePosition.dy <
+            Config.containerBorderWidth + _statusBarHeight ||
+        _circlePosition.dy >
+            _height -
+                Config.ballSize -
+                Config.containerBorderWidth -
+                _bottomBarHeight;
+  }
+
+  bool _hitLeftOrRightBoundary() {
+    return _circlePosition.dx >
+            _width - Config.ballSize - Config.containerBorderWidth ||
+        _circlePosition.dx < Config.containerBorderWidth;
+  }
+
+  void _glow() {
+    setState(() => _borderColor = Colors.pink);
+    Future.delayed(
+      Config.containerGlowDuration,
+      () => setState(() => _borderColor = Config.containerBorderColor),
     );
   }
 
