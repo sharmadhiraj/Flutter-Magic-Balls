@@ -26,6 +26,7 @@ the [Flutter Magic Balls Web Demo](https://sharmadhiraj.github.io/Flutter-Magic-
 
 ## Next
 
+- Fix random disappearing balls issue during simultaneous addition and removal.
 - Make collisions look better
 - Use a circle for the container
 - Deal with collisions between balls
