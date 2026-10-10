@@ -5,9 +5,9 @@ class Ball {
   final String id;
   final Color color;
 
-  Ball({required this.id, required this.color});
+  const Ball({required this.id, required this.color});
 
-  static Ball create() {
+  factory Ball.create() {
     return Ball(
       id: CommonUtil.generateRandomId(),
       color: CommonUtil.getRandomColor(),

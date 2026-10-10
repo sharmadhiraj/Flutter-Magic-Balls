@@ -51,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.black,
         border: Border.all(
           color: _borderColor,
-          style: BorderStyle.solid,
           width: Config.containerBorderWidth,
         ),
       ),
@@ -92,7 +91,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _removeBall(Ball ball) {
     if (_balls.length <= 1) return;
-    setState(() =>
-        _balls.removeWhere((ballWidget) => ballWidget.ball.id == ball.id));
+    setState(
+      () => _balls.removeWhere((ballWidget) => ballWidget.ball.id == ball.id),
+    );
   }
 }

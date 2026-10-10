@@ -20,8 +20,9 @@ class BallWidget extends StatefulWidget {
 }
 
 class _BallWidgetState extends State<BallWidget> {
-  Offset _circlePosition = const Offset(0, 0);
-  late double _width, _height;
+  Offset _circlePosition = Offset.zero;
+  late double _width;
+  late double _height;
   double _statusBarHeight = 0;
   double _bottomBarHeight = 0;
   late Timer _timer;
