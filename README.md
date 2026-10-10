@@ -1,18 +1,15 @@
 # Flutter Magic Balls
 
-Bouncing balls inside a circular arena. Every time a ball hits the wall it may spawn another ball,
-vanish, or simply bounce. Built with Flutter only, no external packages.
+Bouncing balls inside a circular arena. A ball that hits the wall duplicates itself, and two balls
+that touch each other both vanish. Built with Flutter only, no external packages.
 
 **[Try the web demo](https://sharmadhiraj.github.io/Flutter-Magic-Balls/)**
-
-![Demo](screenshots/demo.gif)
 
 ## Features
 
 - Frame-rate independent movement driven by a single `Ticker`
-- Elastic-style ball-to-ball collisions and reflection off the circular wall
-- Random fate on every wall hit: create a ball, vanish, or nothing (weighted)
-- Tap anywhere inside the arena to add a ball
+- Every wall hit duplicates the ball in a different random color, up to a maximum count
+- When two balls touch, both vanish (a new ball starts from the center if none are left)
 - Pause and reset controls
 - Haptic feedback on wall hits
 - The arena border glows in the color of the ball that hit it
@@ -36,7 +33,7 @@ flutter test
 ## Configuration
 
 Everything tunable lives in [`lib/config.dart`](lib/config.dart): ball radius and speed, maximum
-ball count, border width, glow duration, fate weights, and the color palette.
+ball count, border width, glow duration, and the color palette.
 
 ## Project Structure
 
@@ -44,11 +41,11 @@ ball count, border width, glow duration, fate weights, and the color palette.
 lib/
   main.dart                  App entry point
   config.dart                Tunable constants
-  models/                    Ball and BallFate
+  models/ball.dart           Ball
   arena/
-    arena.dart               Simulation: movement, wall bounces, collisions, fates
+    arena.dart               Simulation: movement, wall bounces, duplication, collisions
     offset_math.dart         Small vector helpers (dot, reflect)
-  screens/home.dart          Ticker loop, tap and button handling
+  screens/home.dart          Ticker loop and pause/reset buttons
   widgets/arena_painter.dart Draws the arena border and balls
 test/                        Unit and widget tests
 ```

@@ -40,10 +40,10 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Stack(
+        child: Column(
           children: [
-            Positioned.fill(child: _buildArena()),
-            Align(alignment: Alignment.bottomCenter, child: _buildControls()),
+            Expanded(child: _buildArena()),
+            _buildControls(),
           ],
         ),
       ),
@@ -54,17 +54,7 @@ class _HomeScreenState extends State<HomeScreen>
     return LayoutBuilder(
       builder: (context, constraints) {
         _arena.resize(constraints.biggest);
-        return Semantics(
-          label: "Arena. Tap to add a ball.",
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (details) => _arena.spawn(details.localPosition),
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: ArenaPainter(_arena),
-            ),
-          ),
-        );
+        return CustomPaint(size: Size.infinite, painter: ArenaPainter(_arena));
       },
     );
   }

@@ -6,4 +6,5 @@ class Ball {
   final Color color;
   Offset position;
   Offset velocity;
+  Ball? twin;
 }
