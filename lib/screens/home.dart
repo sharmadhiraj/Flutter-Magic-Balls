@@ -1,11 +1,11 @@
-import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_magic_balls/components/ball.dart';
-import 'package:flutter_magic_balls/models/ball.dart';
-import 'package:flutter_magic_balls/models/ball_future.dart';
-import 'package:flutter_magic_balls/util/common.dart';
-import 'package:flutter_magic_balls/util/config.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_magic_balls/config.dart';
+import 'package:flutter_magic_balls/arena/arena.dart';
+import 'package:flutter_magic_balls/widgets/arena_painter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,85 +14,84 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
-  Color _borderColor = Config.containerBorderColor;
-  final List<BallWidget> _balls = [];
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
+  late final Arena _arena = Arena(onWallHit: HapticFeedback.selectionClick);
+  late final Ticker _ticker = createTicker(_onTick);
+  Duration _lastElapsed = Duration.zero;
+  bool _paused = false;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _addNewBall());
+    _ticker.start();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _arena.reset());
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    _arena.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _buildBody(),
       backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Positioned.fill(child: _buildArena()),
+            Align(alignment: Alignment.bottomCenter, child: _buildControls()),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _buildBody() {
-    return Stack(
+  Widget _buildArena() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _arena.resize(constraints.biggest);
+        return Semantics(
+          label: "Arena. Tap to add a ball.",
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTapDown: (details) => _arena.spawn(details.localPosition),
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: ArenaPainter(_arena),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildControls() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        _buildContainerBorder(),
-        ..._balls,
+        IconButton(
+          tooltip: _paused ? "Resume" : "Pause",
+          color: Config.borderColor,
+          icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+          onPressed: () => setState(() => _paused = !_paused),
+        ),
+        IconButton(
+          tooltip: "Reset",
+          color: Config.borderColor,
+          icon: const Icon(Icons.refresh),
+          onPressed: _arena.reset,
+        ),
       ],
     );
   }
 
-  Widget _buildContainerBorder() {
-    return AnimatedContainer(
-      margin: EdgeInsets.only(
-        top: MediaQuery.of(context).viewPadding.top,
-        bottom: MediaQuery.of(context).viewPadding.bottom,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border.all(
-          color: _borderColor,
-          width: Config.containerBorderWidth,
-        ),
-      ),
-      duration: Config.containerGlowDuration,
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _handleBoundaryHit(Ball ball) {
-    _handleBallFuture(ball);
-    setState(() => _borderColor = ball.color);
-    Future.delayed(
-      Config.containerGlowDuration,
-      () => setState(() => _borderColor = Config.containerBorderColor),
-    );
-  }
-
-  void _handleBallFuture(Ball ball) {
-    final BallFuture ballFuture = CommonUtil.getRandomFuture();
-    if (ballFuture == BallFuture.create) {
-      _addNewBall();
-    } else if (ballFuture == BallFuture.vanish) {
-      _removeBall(ball);
-    }
-  }
-
-  void _addNewBall() {
-    if (_balls.length > Config.maxBallsCount) return;
-    setState(
-      () => _balls.add(
-        BallWidget(
-          ball: Ball.create(),
-          onHitBoundary: _handleBoundaryHit,
-        ),
-      ),
-    );
-  }
-
-  void _removeBall(Ball ball) {
-    if (_balls.length <= 1) return;
-    setState(
-      () => _balls.removeWhere((ballWidget) => ballWidget.ball.id == ball.id),
-    );
+  void _onTick(Duration elapsed) {
+    final double seconds = (elapsed - _lastElapsed).inMicroseconds / 1e6;
+    _lastElapsed = elapsed;
+    if (!_paused) _arena.step(min(seconds, Config.maxStepSeconds));
   }
 }

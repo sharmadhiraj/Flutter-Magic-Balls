@@ -1,16 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_magic_balls/util/common.dart';
+import 'dart:ui';
 
 class Ball {
-  final String id;
+  Ball({required this.color, required this.position, required this.velocity});
+
   final Color color;
-
-  const Ball({required this.id, required this.color});
-
-  factory Ball.create() {
-    return Ball(
-      id: CommonUtil.generateRandomId(),
-      color: CommonUtil.getRandomColor(),
-    );
-  }
+  Offset position;
+  Offset velocity;
 }
