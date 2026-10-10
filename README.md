@@ -5,6 +5,8 @@ that touch each other both vanish. Built with Flutter only, no external packages
 
 **[Try the web demo](https://sharmadhiraj.github.io/Flutter-Magic-Balls/)**
 
+<p align="center"><img src="screenshots/demo.gif" alt="Demo of Flutter Magic Balls" width="320"></p>
+
 ## Features
 
 - Frame-rate independent movement driven by a single `Ticker`
